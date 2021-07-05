@@ -76,6 +76,8 @@ type alias Model =
             { updatedAt : Posix
             , postIds : List PostId
             }
+    , demoPhaceAddr : String
+    , inDappWalletAddress : String
     }
 
 
@@ -84,6 +86,7 @@ type Msg
     | Tick Posix
     | ChangeDemoPhaceSrc
     | NewDemoSrc String
+    | NewDemoAddr String
     | ScrollResponse (Result Browser.Dom.Error ())
     | Resize Int Int
     | EventSentryMsg Chain EventSentry.Msg
@@ -131,7 +134,12 @@ type Msg
     | BalanceResponse (Result Http.Error TokenValue)
     | CloseComposeError
     | SharePost Core
+    | CyclePhace
     | WalletConnectStart
+    | ConnectToInDappWallet
+    | GetInDappWalletAddress String
+    | SubmitDraftInDappWallet
+    | PriceResponseInDappWallet (Result Http.Error Float)
 
 
 type RequestOutcome
@@ -253,6 +261,7 @@ type View
     | ViewTxns
     | ViewAbout
     | ViewUser Address
+    | ViewPhace
     | ViewCompose
 
 
@@ -331,7 +340,6 @@ type alias Accounting =
 
 type alias Draft =
     { donateAmount : TokenValue
-    , author : Address
     , authorBurn : TokenValue
     , content : Content
     , metadata : Metadata
@@ -381,6 +389,7 @@ type Route
     | RouteAbout
     | RouteCompose
     | RouteUser Address
+    | RoutePhace
 
 
 type Chain

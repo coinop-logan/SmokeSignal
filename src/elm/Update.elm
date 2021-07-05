@@ -844,7 +844,6 @@ update msg model =
 
                                             else
                                                 { donateAmount = donateAmount
-                                                , author = userInfo.address
                                                 , authorBurn = burnAmount
                                                 , content = content
                                                 , metadata = metadata
@@ -1507,6 +1506,75 @@ update msg model =
         ScrollResponse _ ->
             ( model, Cmd.none )
 
+        CyclePhace ->
+            ( model
+            , Random.generate NewDemoAddr DemoPhaceSrcMutator.addressSrcGenerator
+            )
+
+        NewDemoAddr addr ->
+            ( { model | demoPhaceAddr = addr |> Eth.Utils.unsafeToAddress |> Eth.Utils.addressToString }
+            , Cmd.none
+            )
+
+        ConnectToInDappWallet ->
+            ( model, Ports.connectToInDappWallet () )
+
+        GetInDappWalletAddress addr ->
+            ( { model | inDappWalletAddress = addr }, Cmd.none )
+
+        SubmitDraftInDappWallet ->
+            ( model
+            , SSContract.getEthPriceCmd
+                (Chain.getConfig Eth model.config)
+                |> Task.attempt PriceResponseInDappWallet
+            )
+
+        PriceResponseInDappWallet res ->
+            res
+                |> unpack
+                    (\_ ->
+                        ( model, Ports.log "bad temp" )
+                    )
+                    (\price ->
+                        let
+                            burnAmount =
+                                TokenValue.fromFloatWithWarning (1.0 / price)
+
+                            context =
+                                TopLevel "test-temp-topic"
+
+                            metadata =
+                                { metadataVersion =
+                                    Post.currentMetadataVersion
+                                , context = context
+                                , maybeDecodeError = Nothing
+                                }
+
+                            content =
+                                { title = Just "Test In Dapp wallet title"
+                                , desc = Nothing
+                                , body = "Test In Dapp wallet body"
+                                }
+
+                            config =
+                                Chain.getConfig XDai model.config
+
+
+                            txParams =
+                                { donateAmount = TokenValue.zero
+                                , authorBurn = TokenValue.zero
+                                , content = content
+                                , metadata = metadata
+                                }
+                                    |> SSContract.burnTestInDappWallet config.ssContract
+                                    |> Eth.toSend
+                                    |> Eth.encodeSend
+                        in
+                        ( model
+                        , Ports.submitTestInDappWallet txParams
+                        )
+                    )
+
 
 handleRoute : Model -> Route -> ( Model, Cmd Msg )
 handleRoute model route =
@@ -1592,6 +1660,13 @@ handleRoute model route =
         RouteAbout ->
             ( { model
                 | view = ViewAbout
+              }
+            , [ defaultTitle ]
+            )
+
+        RoutePhace ->
+            ( { model
+                | view = ViewPhace
               }
             , [ defaultTitle ]
             )

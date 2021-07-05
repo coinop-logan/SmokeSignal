@@ -4,6 +4,12 @@ const chains = require("../config.json");
 
 const WalletConnect = require("@walletconnect/client").default;
 const QRCodeModal = require("@walletconnect/qrcode-modal");
+const Accounts = require('web3-eth-accounts');
+const Web3Utils = require("web3-utils");
+const Eth = require("web3-eth");
+
+
+
 
 window.localStorage.removeItem("walletconnect");
 
@@ -36,13 +42,46 @@ const gaTrackingId = GA_TRACKING_ID;
 // Local storage keys
 const HAS_VISITED = "has-visited";
 const COOKIE_CONSENT = "cookie-consent";
+const INDAPPWALLET_ACCOUNT = "indappwallet_account"
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   registerPageView();
   const app = startDapp();
 
   analyticsGtagPortStuff(app);
   seoPortStuff(app);
+  const eth = new Eth('https://xdai-archive.blockscout.com');
+  const accounts = new Accounts(eth);
+
+  app.ports.connectToInDappWallet.subscribe(() => {
+    (async () => {
+
+      const account = await accounts.create();
+      const account_object_string = JSON.stringify(account);
+      setInDappWalletAccount(account_object_string);
+      console.log('account ' + account_object_string);
+      console.log('address xdai ' + account.address);
+      console.log('private key ' + account.privateKey);
+      app.ports.inDappWalletAddress.send(account.address)
+
+    })().catch((e) => {
+      console.log(e)
+    })
+  });
+
+  app.ports.submitTestInDappWallet.subscribe(async (params) => {
+    console.log('Test');
+    console.log(params);
+    const account = getInDappWalletAccount();
+    console.log(account);
+    const new_account = await accounts.privateKeyToAccount(account.privateKey);
+    console.log(new_account);
+    const signed = await new_account.signTransaction(params);
+    const res = await eth.sendSignedTransaction(signed.rawTransaction);
+    console.log(res);
+  });
+
+
 
   app.ports.setVisited.subscribe(() => localStorage.setItem(HAS_VISITED, true));
 
@@ -198,6 +237,15 @@ function getCookieConsent() {
 
 function setCookieConsent() {
   window.localStorage.setItem(COOKIE_CONSENT, true);
+}
+
+function setInDappWalletAccount(account){
+  window.localStorage.setItem(INDAPPWALLET_ACCOUNT, account )
+}
+
+function getInDappWalletAccount(){
+  return JSON.parse(window.localStorage.getItem(INDAPPWALLET_ACCOUNT));
+
 }
 
 const attachConnectorEvents = (app) => {

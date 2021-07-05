@@ -247,4 +247,5 @@ subscriptions model =
         , Ports.postResponse (Wallet.rpcResponseDecoder >> Types.PostResponse)
         , Ports.chainSwitchResponse (Wallet.chainSwitchDecoder >> Types.ChainSwitchResponse)
         , Ports.onUrlChange (Routing.parseRoute >> Types.RouteChanged)
+        , Ports.inDappWalletAddress Types.GetInDappWalletAddress
         ]

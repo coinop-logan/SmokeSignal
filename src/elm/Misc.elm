@@ -63,6 +63,8 @@ emptyModel =
     , shareEnabled = False
     , ethAccountingQueue = Nothing
     , xDaiAccountingQueue = Nothing
+    , demoPhaceAddr = "Ethereum Address"
+    , inDappWalletAddress = initDemoPhaceSrc
     }
 
 
@@ -192,6 +194,9 @@ tryRouteToView route =
                 |> validateTopic
                 |> Maybe.map ViewTopic
                 |> Result.fromMaybe "Malformed topic"
+
+        RoutePhace ->
+            Ok ViewPhace
 
         RouteInvalid ->
             Err "Path not found"

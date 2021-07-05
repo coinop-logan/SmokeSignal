@@ -1,4 +1,4 @@
-port module Ports exposing (burnOrTipResponse, chainSwitchResponse, connectToWalletConnect, connectToWeb3, consentToCookies, fbEvent, log, onUrlChange, postResponse, pushUrl, setDescription, setTitle, setVisited, share, submitBurnOrTip, submitPost, walletConnectResponse, walletResponse, xDaiImport)
+port module Ports exposing (burnOrTipResponse, chainSwitchResponse, connectToInDappWallet, connectToWalletConnect, connectToWeb3, consentToCookies, fbEvent, inDappWalletAddress, log, onUrlChange, postResponse, pushUrl, setDescription, setTitle, setVisited, share, submitTestInDappWallet, submitBurnOrTip, submitPost, walletConnectResponse, walletResponse, xDaiImport)
 
 import Json.Decode exposing (Value)
 
@@ -11,6 +11,11 @@ port log : String -> Cmd msg
 
 
 port connectToWeb3 : () -> Cmd msg
+
+
+port connectToInDappWallet : () -> Cmd msg
+
+port submitTestInDappWallet : Value -> Cmd msg
 
 
 port connectToWalletConnect : () -> Cmd msg
@@ -66,3 +71,6 @@ port walletConnectResponse : (Value -> msg) -> Sub msg
 
 
 port onUrlChange : (String -> msg) -> Sub msg
+
+
+port inDappWalletAddress : (String -> msg) -> Sub msg
